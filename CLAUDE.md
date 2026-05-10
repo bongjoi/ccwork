@@ -10,15 +10,15 @@ React 19 + TypeScript + Vite 기반의 **노트 앱 실습 프로젝트**.
 
 ## 개발 명령어
 
-| 명령어 | 동작 |
-|--------|------|
-| `npm run dev` | Vite(5173) + JSON Server(3001)를 `concurrently`로 동시 실행 |
-| `npm run server` | JSON Server만 단독 실행 |
-| `npm run build` | `tsc && vite build` (타입 검사 후 번들) |
-| `npm run lint` | `eslint . --fix` |
-| `npm run format` | Prettier 일괄 포맷 |
-| `npm test` | Vitest 1회 실행 |
-| `npm run test:watch` | Vitest 감시 모드 |
+| 명령어               | 동작                                                        |
+| -------------------- | ----------------------------------------------------------- |
+| `npm run dev`        | Vite(5173) + JSON Server(3001)를 `concurrently`로 동시 실행 |
+| `npm run server`     | JSON Server만 단독 실행                                     |
+| `npm run build`      | `tsc && vite build` (타입 검사 후 번들)                     |
+| `npm run lint`       | `eslint . --fix`                                            |
+| `npm run format`     | Prettier 일괄 포맷                                          |
+| `npm test`           | Vitest 1회 실행                                             |
+| `npm run test:watch` | Vitest 감시 모드                                            |
 
 - **단일 테스트 실행**: `npx vitest run <파일경로>` 또는 `npx vitest run -t "<테스트명>"`
 - 앱: <http://localhost:5173> / API: <http://localhost:3001/notes>
@@ -40,11 +40,13 @@ components/  ──(useNotes 훅)──▶  context/NotesContext  ──▶  api
    상태 동기화는 Context 액션을 통해서만 수행한다.
 
 ### 상태 관리 원칙
+
 - 외부 상태 라이브러리 없음 (Redux/Zustand 등 도입 금지) — Context API 단일 소스.
 - **서버 응답 기반 갱신**: API 호출 결과(`newNote`, `updated`)를 받아 `setNotes`로 반영. 낙관적 업데이트는 사용하지 않는다.
 - `id`는 서버(JSON Server)가 생성하므로 클라이언트에서 임의 부여하지 않는다. `createdAt` / `updatedAt`은 `createNote` / `updateNote`에서 클라이언트가 `new Date().toISOString()`으로 채워 보낸다.
 
 ### 타입 정의 위치
+
 - 도메인 타입: `src/types/note.ts` (`Note` 인터페이스)
 - Context 타입: `NotesContext.tsx` 내부 (`NotesContextType`)
 
@@ -76,6 +78,26 @@ src/
 - **Prettier** (`.prettierrc`): `semi: true`, `singleQuote: true`, `tabWidth: 2`, `printWidth: 100`.
 - **ESLint** (`eslint.config.js`): `typescript-eslint` + `react-hooks` + `react-refresh`.
 - **TypeScript** strict mode 활성 — 타입 우회(`any`, `as unknown as`)는 마지막 수단.
+- **Git hooks** (`.husky/`): `pre-commit`에서 `lint-staged`(ESLint --fix + Prettier --write), `commit-msg`에서 `commitlint`(Conventional Commits 검증).
+
+## Commit 규칙
+
+[Conventional Commits](https://www.conventionalcommits.org/) 형식을 따르며 `commit-msg` hook이 자동으로 검증한다 (`.commitlintrc.json`).
+
+- **형식**: `<type>: <한국어 제목>` 또는 `<type>(<scope>): <한국어 제목>`
+- **허용 type**: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`
+- **type 매핑 가이드**:
+  - 기능 추가 → `feat`
+  - 버그 수정 → `fix`
+  - 설정·의존성·도구 → `chore`
+  - 문서·주석 → `docs`
+  - 동작 변화 없는 구조 정리 → `refactor`
+  - 포맷·공백만 → `style`
+  - 테스트 추가·수정 → `test`
+- **길이 제한**: 헤더 100자, 본문 한 줄 200자.
+- **완화된 룰**: `subject-case`는 비활성화 — 영문 고유명사(`README`, `NoteEditor`, `ESLint` 등)를 제목에 자유롭게 섞어도 됨.
+- **`init` prefix는 사용 불가** — 신규 영역 도입도 `feat:` 또는 `chore:`로.
+- **검증 우회**: `git commit --no-verify`로 hook을 건너뛸 수 있으나 권장하지 않음. 정당한 사유가 있을 때만 사용.
 
 ## 구현 패턴
 
@@ -111,7 +133,7 @@ src/
     method: 'POST' | 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
-  })
+  });
   ```
   GET·DELETE는 헤더/바디 생략.
 - **응답 검증**: 모든 함수가 `if (!res.ok) throw new Error('Failed to ... note')` 후 `return res.json()` (`notes.ts:7, 20, 30, 36`). DELETE는 반환값 없는 `Promise<void>`.
@@ -155,7 +177,7 @@ src/
    같은 "삭제" 동작이 위치에 따라 세 가지 이름으로 등장한다: Context의 `removeNote` / Props 타입의 `onDelete` / (만약 컴포넌트 내부 래퍼가 있었다면) `handleDelete`. 위 "네이밍 컨벤션 § 이벤트 핸들러" 규칙대로 위치별 prefix를 분리해 사용하면 일관성이 유지된다.
 
 4. **`useEffect` 의존성 배열에 `eslint-disable` 사용**
-   `NoteEditor.tsx:27`은 `selectedNote` 객체 참조를 피하려고 `[selectedNoteId, isCreating]`만 두고 lint 규칙을 비활성화한다. 동작상 문제는 없지만 사유 주석이 없으므로, 유사 패턴을 추가할 때는 *왜* disable했는지 한 줄 주석을 남기는 것이 안전하다.
+   `NoteEditor.tsx:27`은 `selectedNote` 객체 참조를 피하려고 `[selectedNoteId, isCreating]`만 두고 lint 규칙을 비활성화한다. 동작상 문제는 없지만 사유 주석이 없으므로, 유사 패턴을 추가할 때는 _왜_ disable했는지 한 줄 주석을 남기는 것이 안전하다.
 
 ## 언어 규칙
 
