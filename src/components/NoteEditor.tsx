@@ -27,10 +27,7 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
   }, [selectedNoteId, isCreating]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = async () => {
-    if (!title.trim()) {
-      alert('제목을 입력해주세요');
-      return;
-    }
+    if (!title.trim()) return;
 
     setSaving(true);
     try {
@@ -42,7 +39,6 @@ export function NoteEditor({ selectedNoteId, isCreating, onDone }: NoteEditorPro
       onDone();
     } catch (e) {
       console.error(e);
-      alert('저장에 실패했습니다');
     } finally {
       setSaving(false);
     }
