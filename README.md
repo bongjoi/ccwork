@@ -2,11 +2,18 @@
 
 React 19 + TypeScript + Vite 기반 노트 앱 실습 프로젝트.
 
+## 기능
+
+- 노트 생성·조회·수정·삭제(CRUD)
+- 노트별 태그 추가/삭제 — 단일 입력창 + `Enter`로 chip 등록, `×` 버튼으로 제거. 한글 IME 환경에서도 잔여 chip 없이 안정 동작.
+
+각 기능의 상세 스펙은 [`docs/features/`](docs/features/)에 정리한다. 예: [태그 기능 스펙](docs/features/tag/spec-fixed.md).
+
 ## 시작하기
 
 ```bash
 # 저장소 클론
-git clone git@github.com:frongt/ccwork.git
+git clone git@github.com:bongjoi/ccwork.git
 cd ccwork
 
 # 의존성 설치
@@ -21,13 +28,13 @@ npm run dev
 
 ## 스크립트
 
-| 명령어 | 설명 |
-|--------|------|
-| `npm run dev` | 개발 서버 실행 |
-| `npm run build` | 프로덕션 빌드 |
-| `npm run lint` | ESLint 검사 |
-| `npm run format` | Prettier 포맷 |
-| `npm test` | 테스트 실행 |
+| 명령어           | 설명           |
+| ---------------- | -------------- |
+| `npm run dev`    | 개발 서버 실행 |
+| `npm run build`  | 프로덕션 빌드  |
+| `npm run lint`   | ESLint 검사    |
+| `npm run format` | Prettier 포맷  |
+| `npm test`       | 테스트 실행    |
 
 ## 프로젝트 구조
 
