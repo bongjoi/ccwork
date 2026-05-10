@@ -2,7 +2,7 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>아키텍처 다이어그램 · 노트 앱</title>
+    <title>아키텍처 다이어그램</title>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -11,7 +11,9 @@
         padding: 0 1rem;
         color: #1f2937;
       }
-      h1 { margin-bottom: 0.25rem; }
+      h1 {
+        margin-bottom: 0.25rem;
+      }
       h2 {
         margin-top: 2.5rem;
         border-bottom: 1px solid #e5e7eb;
@@ -22,12 +24,6 @@
         font-size: 0.9rem;
         margin-bottom: 2rem;
       }
-      .legend {
-        font-size: 0.85rem;
-        color: #4b5563;
-        margin: 0.5rem 0 1rem;
-      }
-      .legend code { background: #f3f4f6; padding: 0 0.3em; border-radius: 3px; }
       .mermaid {
         background: #fff;
         border: 1px solid #e5e7eb;
@@ -35,165 +31,170 @@
         padding: 1rem;
         overflow-x: auto;
       }
+      code {
+        background: #f3f4f6;
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+        font-size: 0.85em;
+      }
     </style>
   </head>
   <body>
     <h1>📐 아키텍처 다이어그램</h1>
     <p class="meta">
-      생성: 2026-05-10 · 소스: <code>src/</code> · 대상 프로젝트: 노트 앱 (React 19 + TypeScript + Vite)<br />
-      그래프 제외: <code>src/test-setup.ts</code> — vitest <code>setupFiles</code>로 등록되어 모듈 import 그래프에 나타나지 않음.
+      생성: 2026-05-10T13:15:18Z · 소스: <code>src/</code> · 파일 10개 (.ts/.tsx) · 외부: JSON
+      Server (<code>localhost:3001</code>)
     </p>
 
     <h2>1. 컴포넌트 의존성</h2>
-    <p class="legend">
-      화살표는 <code>import</code> 방향(<code>A → B</code>는 A가 B를 import). 점선은 외부 시스템 호출.
-    </p>
     <pre class="mermaid">
 flowchart LR
-  subgraph entryGroup["entry"]
-    main["main.tsx"]
-    App["App.tsx"]
+  subgraph entryGroup [entry]
+    main_tsx[main.tsx]
+    App_tsx[App.tsx]
   end
-  subgraph componentsGroup["components"]
-    c_Layout["Layout.tsx"]
-    c_NoteList["NoteList.tsx"]
-    c_NoteItem["NoteItem.tsx"]
-    c_NoteEditor["NoteEditor.tsx"]
+  subgraph componentsGroup [components]
+    Layout_tsx[Layout.tsx]
+    NoteList_tsx[NoteList.tsx]
+    NoteItem_tsx[NoteItem.tsx]
+    NoteEditor_tsx[NoteEditor.tsx]
   end
-  subgraph contextGroup["context"]
-    ctx["NotesContext.tsx"]
+  subgraph contextGroup [context]
+    NotesContext_tsx[NotesContext.tsx]
   end
-  subgraph apiGroup["api"]
-    api_notes["notes.ts"]
+  subgraph apiGroup [api]
+    notes_ts[notes.ts]
   end
-  subgraph typesGroup["types"]
-    t_note["note.ts"]
+  subgraph typesGroup [types]
+    note_ts[note.ts]
   end
-  JSONServer[("JSON Server :3001")]
+  subgraph externalGroup [external]
+    JSONServer[(JSON Server<br/>localhost:3001)]
+  end
 
-  main --> App
-  App --> ctx
-  App --> c_Layout
-  App --> c_NoteList
-  App --> c_NoteEditor
-  c_NoteEditor --> ctx
-  c_NoteList --> ctx
-  c_NoteList --> c_NoteItem
-  c_NoteItem --> t_note
-  ctx --> t_note
-  ctx --> api_notes
-  api_notes --> t_note
-  api_notes -.->|REST| JSONServer
+  main_tsx --> App_tsx
+  App_tsx --> NotesContext_tsx
+  App_tsx --> Layout_tsx
+  App_tsx --> NoteList_tsx
+  App_tsx --> NoteEditor_tsx
+  NoteEditor_tsx --> NotesContext_tsx
+  NoteList_tsx --> NotesContext_tsx
+  NoteList_tsx --> NoteItem_tsx
+  NotesContext_tsx --> note_ts
+  NotesContext_tsx --> notes_ts
+  NoteItem_tsx --> note_ts
+  notes_ts --> note_ts
+  notes_ts -.-> JSONServer
 
-  classDef entry      fill:#fee2e2,stroke:#991b1b,color:#1f2937;
-  classDef components fill:#dbeafe,stroke:#1e40af,color:#1f2937;
-  classDef context    fill:#fef3c7,stroke:#92400e,color:#1f2937;
-  classDef api        fill:#dcfce7,stroke:#166534,color:#1f2937;
-  classDef types      fill:#f3e8ff,stroke:#6b21a8,color:#1f2937;
-  classDef external   fill:#f1f5f9,stroke:#475569,stroke-dasharray: 4 2,color:#1f2937;
+  classDef entry      fill:#fee2e2,stroke:#991b1b;
+  classDef components fill:#dbeafe,stroke:#1e40af;
+  classDef context    fill:#fef3c7,stroke:#92400e;
+  classDef api        fill:#dcfce7,stroke:#166534;
+  classDef types      fill:#f3e8ff,stroke:#6b21a8;
+  classDef external   fill:#f1f5f9,stroke:#475569,stroke-dasharray: 4 2;
 
-  class main,App entry;
-  class c_Layout,c_NoteList,c_NoteItem,c_NoteEditor components;
-  class ctx context;
-  class api_notes api;
-  class t_note types;
+  class main_tsx,App_tsx entry;
+  class Layout_tsx,NoteList_tsx,NoteItem_tsx,NoteEditor_tsx components;
+  class NotesContext_tsx context;
+  class notes_ts api;
+  class note_ts types;
   class JSONServer external;
     </pre>
 
-    <h2>2. 상태 흐름 — 새 노트 저장</h2>
-    <p class="legend">
-      <code>NoteEditor</code>에서 저장 버튼을 눌렀을 때의 단방향 흐름. 굵은 화살표는 호출, 점선은 응답.
+    <h2>2. 상태 흐름</h2>
+    <p class="meta">
+      대표 시나리오: <strong>새 노트 저장</strong> (NoteEditor → Context → API → JSON Server)
     </p>
     <pre class="mermaid">
 sequenceDiagram
-  autonumber
-  actor User
-  participant NE as NoteEditor
-  participant Ctx as NotesContext
-  participant API as api/notes
-  participant JS as JSON Server
+  actor User as 사용자
+  participant Editor as NoteEditor
+  participant Ctx as NotesProvider
+  participant Api as api/notes
+  participant Server as JSON Server
 
-  User->>NE: 제목/내용 입력 + 저장 클릭
-  NE->>NE: setSaving(true)
-  NE->>Ctx: addNote(title, content)
+  User->>Editor: 제목/내용 입력 후 "저장" 클릭
+  Editor->>Editor: setSaving(true)
+  activate Editor
+  Editor->>Ctx: addNote(title, content)
   activate Ctx
-  Ctx->>API: createNote({title, content})
-  activate API
-  API->>JS: POST /notes (createdAt/updatedAt 포함)
-  JS-->>API: 201 + Note
-  API-->>Ctx: Note
-  deactivate API
+  Ctx->>Api: createNote({title, content})
+  activate Api
+  Api->>Server: POST /notes (createdAt, updatedAt 포함)
+  activate Server
+  Server-->>Api: 201 Created (newNote with id)
+  deactivate Server
+  Api-->>Ctx: newNote
+  deactivate Api
   Ctx->>Ctx: setNotes(prev => [...prev, newNote])
-  Ctx-->>NE: Promise resolve
+  Ctx-->>Editor: resolve
   deactivate Ctx
-  NE->>NE: onDone() / setSaving(false)
+  Editor->>Editor: onDone() · setSaving(false)
+  deactivate Editor
+  Editor-->>User: 편집 모드 종료, 목록 갱신
     </pre>
 
     <h2>3. 상태 소유 구조</h2>
-    <p class="legend">
-      각 owner(컴포넌트/Context)가 들고 있는 state 키와 타입. 색상은 의존성 그래프(§1)의 레이어와 일치.
-    </p>
     <pre class="mermaid">
 flowchart TB
-  subgraph appOwn["App.tsx · 지역 상태 (라우팅 모드)"]
-    a1["selectedNoteId : string | null"]
-    a2["isCreating : boolean"]
+  subgraph appOwner [App.tsx · 화면 모드 로컬 상태]
+    appA["selectedNoteId : string | null"]
+    appB["isCreating : boolean"]
   end
-  subgraph editorOwn["NoteEditor.tsx · 지역 상태 (폼 + 저장)"]
-    e1["title : string"]
-    e2["content : string"]
-    e3["saving : boolean"]
+  subgraph editorOwner [NoteEditor.tsx · 폼 로컬 상태]
+    edA["title : string"]
+    edB["content : string"]
+    edC["saving : boolean"]
   end
-  subgraph ctxOwn["NotesContext.tsx · 전역 상태 (Provider value)"]
-    c1["notes : Note[]"]
-    c2["loading : boolean"]
-    c3["error : string | null"]
+  subgraph providerOwner [NotesProvider · 전역 상태 + 액션]
+    ctxA["notes : Note[]"]
+    ctxB["loading : boolean"]
+    ctxC["error : string | null"]
+    ctxD["addNote(title, content)"]
+    ctxE["editNote(id, updates)"]
+    ctxF["removeNote(id)"]
   end
 
-  classDef entry      fill:#fee2e2,stroke:#991b1b,color:#1f2937;
-  classDef components fill:#dbeafe,stroke:#1e40af,color:#1f2937;
-  classDef context    fill:#fef3c7,stroke:#92400e,color:#1f2937;
+  classDef entry      fill:#fee2e2,stroke:#991b1b;
+  classDef components fill:#dbeafe,stroke:#1e40af;
+  classDef context    fill:#fef3c7,stroke:#92400e;
 
-  class a1,a2 entry;
-  class e1,e2,e3 components;
-  class c1,c2,c3 context;
+  class appOwner entry;
+  class editorOwner components;
+  class providerOwner context;
     </pre>
 
-    <h2>4. 상태 전이 — App 모드 머신</h2>
-    <p class="legend">
-      <code>selectedNoteId × isCreating</code>이 결정하는 세 모드와 사용자 액션에 따른 전이.
-      <code>NoteEditor.handleSave</code>의 <code>saving</code> 플래그는 본 머신과 무관하므로 제외.
+    <h2>4. 상태 전이</h2>
+    <p class="meta">
+      App.tsx의 <code>selectedNoteId</code>(nullable id) × <code>isCreating</code>(boolean) 조합이
+      화면 모드를 결정한다.
     </p>
     <pre class="mermaid">
 stateDiagram-v2
   [*] --> Idle
+  Idle: Idle (빈 화면)
+  Editing: Editing (기존 노트 편집)
+  Creating: Creating (새 노트 작성)
 
-  Idle --> Creating: handleNewNote()
   Idle --> Editing: handleSelectNote(id)
-
-  Creating --> Idle: handleDone() (저장 또는 취소)
-  Creating --> Editing: handleSelectNote(id)
-
-  Editing --> Creating: handleNewNote()
+  Idle --> Creating: handleNewNote()
   Editing --> Editing: handleSelectNote(otherId)
-  Editing --> Editing: handleDone()
+  Editing --> Creating: handleNewNote()
+  Creating --> Editing: handleSelectNote(id)
+  Editing --> Editing: handleDone() (선택 유지)
+  Creating --> Idle: handleDone()
 
   note right of Idle
     selectedNoteId = null
     isCreating = false
-    안내 화면
   end note
-
-  note right of Creating
-    selectedNoteId = null
-    isCreating = true
-    NoteEditor: 빈 폼
-  end note
-
   note right of Editing
     selectedNoteId = string
     isCreating = false
-    NoteEditor: 선택 노트
+  end note
+  note right of Creating
+    selectedNoteId = null
+    isCreating = true
   end note
     </pre>
 
