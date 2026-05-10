@@ -107,6 +107,7 @@ src/
 - **Props 타입**: 파일 내부에 `interface ComponentNameProps`로 정의(파일 외부로 export하지 않음). 예: `NoteEditor.tsx:4-8`, `NoteList.tsx:4-7`, `NoteItem.tsx:3-8`, `Layout.tsx:3-7`.
 - **컴포지션 슬롯**: `Layout`은 `sidebar`/`main`을 `ReactNode`로 받아 합성한다(`Layout.tsx:5-6`). 자식 위치를 props로 명시할 때 동일 패턴 사용.
 - **폼**: 모두 controlled component (`value` + `onChange={(e) => setX(e.target.value)}`). 예: `NoteEditor.tsx:73-91`.
+- **키 액션·IME 가드**: `<input>`/`<textarea>`에 `onKeyDown`으로 키 액션(예: Enter로 항목 추가/저장/검색)을 붙일 때, **반드시 `e.nativeEvent.isComposing`으로 가드**한다. 한글·일본어·중국어 IME가 조합 중 글자를 확정하기 위해 발생시키는 Enter를 액션으로 처리하면 동일 액션이 두 번 실행돼 잔여값이 추가되는 버그가 생긴다(예: "테스트" 입력 후 Enter → `["테스트","트"]`). 패턴: `if (e.key === 'Enter' && !e.nativeEvent.isComposing) { ... }`. 적용 예: `NoteEditor.tsx`의 태그 input.
 - **조건부 렌더링**: 화면 단위 분기는 **early return** 우선 (`NoteList.tsx:12-28`, `NoteEditor.tsx:52-63`). className 분기는 삼항(`NoteItem.tsx:14-18`). `&&` 단축 렌더링은 사용하지 않는다.
 - **Fragment**: 단일 root가 아니면 `<>...</>` 사용 (`NoteList.tsx:31-44`).
 - **스타일**: TailwindCSS utility class만 사용. CSS 모듈/CSS-in-JS/`style` 인라인은 디자인 토큰(`bg-card`, `text-muted-foreground`, `text-destructive` 등)으로 흡수.
@@ -120,7 +121,7 @@ src/
 - **상태 업데이트**: 항상 함수형 업데이트 — `setNotes((prev) => [...prev, newNote])` / `prev.map(...)` / `prev.filter(...)` (`NotesContext.tsx:31, 36, 41`). 직접 값 전달 금지(stale closure 방지).
 - **로딩/에러 상태 이름**: prefix 없는 단순명사 — `loading`, `error`(메시지 string), `saving`(컴포넌트 지역). `isLoading`/`errorMessage` 같은 변형은 쓰지 않는다.
 - **초기 데이터 로드**: `NotesProvider`의 `useEffect(() => { ... }, [])`에서 promise chain(`.then().catch().finally()`)으로 처리 (`NotesContext.tsx:21-27`). try/catch 아님.
-- **액션 함수 시그니처**: `addNote(title, content)` / `editNote(id, updates)` / `removeNote(id)` 형태로, **API 응답을 await한 뒤 `setNotes`로 반영**한다(낙관적 업데이트 금지).
+- **액션 함수 시그니처**: `addNote(title, content, tags)` / `editNote(id, updates)` / `removeNote(id)` 형태로, **API 응답을 await한 뒤 `setNotes`로 반영**한다(낙관적 업데이트 금지).
 - **에러 처리 책임**: 액션 자체는 try/catch를 걸지 않고 호출자(컴포넌트)가 처리한다 (`NoteEditor.tsx:33-44` 참고). **에러 보고는 `console.error`로만 한다 — `alert` 사용 금지.** 입력 유효성 가드도 `alert` 대신 silent return을 쓴다(`NoteEditor.tsx:30`). 이 부분은 일관성 주의 — 아래 "일관성 주의 사항" 섹션 참조.
 
 ### API 호출
